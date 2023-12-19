@@ -6,7 +6,7 @@
 int yylex();
 
 void yyerror(const char * s){
-    fprintf(stderr,"ERROR IS FOUND IN %s ",s);
+    fprintf(stderr,"ERROR IS FOUND IN %s\n ",s);
 };
 %}
 
@@ -14,20 +14,39 @@ void yyerror(const char * s){
     char * a;
 
 }
+%token <a> ADD SUB MUL DIV
+%token <a> OBR EBR
+%token <a> VAR
+%token <a> SIN COS
 
-%token <a> WORD OBR EBR
+%left ADD SUB
+%left MUL DIV
+%nonassoc OBR EBR
+
 %token NEWLINE
 
-%type <a> sentence
+%type <a> term sentence line
 
 %%
 input:/*void*/
-|input sentence NEWLINE {printf("%s\n",$2);}
+|input line NEWLINE {printf("%s\n",$2);}
 ;
 
-sentence: WORD
-|sentence WORD{$$=strcat($1,$2);free($2);}
-|sentence OBR sentence EBR {$$=strcat(strcat(strcat($1,strdup("[")),$3),"]");free($2);free($4);}
+line: sentence
+|line ADD sentence {$$=strcat(strcat($1,"+"),$3);free($2);}
+|line SUB sentence {$$=strcat(strcat($1,"-"),$3);free($2);}
+;
+
+sentence: term
+|sentence MUL term {$$=strcat(strcat($1,"*"),$3);free($2);}
+|sentence DIV term {$$=strcat(strcat($1,"/"),$3);free($2);}
+;
+
+term: VAR
+/*|sentence WORD{$$=strcat($1,$2);free($2);}*/
+|SIN OBR line EBR {$$=strcat(strcat(strcat($1,strdup("[")),$3),"]");free($2);free($4);}
+|COS OBR line EBR {$$=strcat(strcat(strcat($1,strdup("[")),$3),"]");free($2);free($4);}
+/*|sentence ADD sentence {$$=strcat(strcat($1,"+"),$3);free($2);}*/
 ;
 
 %%
